@@ -1,0 +1,163 @@
+<?php
+$host = "localhost";
+$user = "root";
+$pass = "";
+$db = "site_casas";
+
+$conn = new mysqli($host, $user, $pass, $db);
+if($conn->connect_error){
+    die("Erro de conexão: ".$conn->connect_error);
+}
+?>
+  
+ CREATE DATABASE site_casas;
+
+USE site_casas;
+
+CREATE TABLE usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100),
+    email VARCHAR(100),
+    senha VARCHAR(255)
+);
+
+CREATE TABLE casas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    titulo VARCHAR(100),
+    localizacao VARCHAR(100),
+    preco DECIMAL(15,2),
+    descricao TEXT,
+    imagem VARCHAR(255)
+);
+
+CREATE TABLE mensagens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100),
+    email VARCHAR(100),
+    mensagem TEXT,
+    data_envio TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+); 
+  
+//oi
+  
+<?php
+session_start();
+include("../config/conexao.php");
+
+if(isset($_POST['entrar'])){
+    $user = $_POST['user'];
+    $senha = $_POST['senha'];
+
+    // Usuário admin hardcoded
+    if($user == "admin" && $senha == "1234"){
+        $_SESSION['admin'] = $user;
+        header("Location: dashboard.php");
+        exit;
+    } else {
+        $erro = "Usuário ou senha incorretos!";
+    }
+}
+?>
+
+<form method="POST">
+<input type="text" name="user" placeholder="Admin" required>
+<input type="password" name="senha" placeholder="Senha" required>
+<button name="entrar">Entrar</button>
+<?php if(isset($erro)) echo "<p style='color:red'>$erro</p>"; ?>
+</form>
+  
+  
+//css
+  
+ body{
+font-family:Poppins,sans-serif;
+background:#f4f6fb;
+padding:40px;
+}
+h1{margin-bottom:30px;}
+.cards{display:flex;gap:20px;margin-bottom:40px;}
+.card{
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 5px 15px rgba(0,0,0,0.1);
+width:200px;
+text-align:center;
+}
+.card h2{color:#0077ff;}
+.graficos{
+background:white;
+padding:30px;
+border-radius:10px;
+box-shadow:0 5px 20px rgba(0,0,0,0.1);
+}
+  
+  //js graficos
+  
+  const ctx = document.getElementById('graficoCasas');
+
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+        datasets: [{
+            label: 'Casas Publicadas',
+            data: [5, 9, 6, 12, 8, 15],
+            backgroundColor: [
+                '#0077ff','#00c6ff','#0077ff','#00c6ff','#0077ff','#00c6ff'
+            ]
+        }]
+    },
+    options: {
+        responsive:true,
+        animation:{
+            duration:2000
+        }
+    }
+});//dashboardgr
+  
+ <?php
+session_start();
+include("../config/conexao.php");
+if(!isset($_SESSION['admin'])){
+    header("Location: login-admin.php");
+    exit;
+}
+
+// Estatísticas
+$c1 = $conn->query("SELECT * FROM casas");
+$total_casas = $c1->num_rows;
+
+$c2 = $conn->query("SELECT * FROM usuarios");
+$total_users = $c2->num_rows;
+?>
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<title>Painel Admin</title>
+<link rel="stylesheet" href="css/admin.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<h1>Painel de Administração</h1>
+
+<div class="cards">
+    <div class="card">
+        <h2>Casas</h2>
+        <p><?php echo $total_casas ?></p>
+    </div>
+    <div class="card">
+        <h2>Usuários</h2>
+        <p><?php echo $total_users ?></p>
+    </div>
+</div>
+
+<div class="graficos">
+<canvas id="graficoCasas"></canvas>
+</div>
+
+<script src="js/graficos.js"></script>
+</body>
+</html>
+  
